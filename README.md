@@ -37,6 +37,24 @@ bundle exec rake test          # Run tests
 bundle exec rackup             # Visual test at http://localhost:9292
 ```
 
+## Deploy in SAPL Pages:
+
+Copy 
+```
+lib/rouge/lexers/sapl.rb
+lib/rouge/lexers/sapl_test.rb
+```
+
+to ```sapl-pages/_Plugins/```
+
+```
+sapl-pages/
+├── _plugins/
+│   ├── sapl.rb
+│   └── sapl_test.rb
+└── ... (other Jekyll files)
+```
+
 ## License
 
-Apache 2.0
+MIT
