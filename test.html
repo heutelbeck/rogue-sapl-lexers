@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SAPL Highlighter Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 20px auto; 
+            padding: 20px;
+        }
+        h1 { color: #333; }
+        h2 { 
+            color: #666; 
+            margin-top: 40px; 
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        pre { 
+            background: #2d2d2d; 
+            color: #f8f8f2;
+            padding: 20px; 
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .keyword { color: #ff79c6; font-weight: bold; }
+        .string { color: #f1fa8c; }
+        .comment { color: #6272a4; font-style: italic; }
+        .number { color: #bd93f9; }
+        .operator { color: #ff79c6; }
+        .function { color: #50fa7b; }
+        .builtin { color: #8be9fd; }
+        .constant { color: #bd93f9; }
+    </style>
+</head>
+<body>
+    <h1>SAPL Syntax Highlighter Test</h1>
+    
+    <h2>SAPL Policy Example</h2>
+    <pre><code><span class="keyword">policy</span> <span class="string">"deny access outside business hours"</span>
+<span class="keyword">deny</span>
+<span class="builtin">resource</span>.type == <span class="string">"patient_record"</span> & <span class="builtin">action</span> == <span class="string">"read"</span>
+<span class="keyword">where</span>
+  !&lt;<span class="function">time.localTimeIsBetween</span>(<span class="string">"08:00:00"</span>, <span class="string">"18:00:00"</span>)&gt;;</code></pre>
+
+    <h2>SAPL with Schema and Transform</h2>
+    <pre><code><span class="comment">// Healthcare access control</span>
+<span class="keyword">import</span> <span class="function">time</span>.* <span class="keyword">as</span> time
+
+<span class="builtin">subject</span> <span class="keyword">schema</span> {
+  <span class="string">"username"</span>: <span class="string">"text"</span>,
+  <span class="string">"roles"</span>: [<span class="string">"text"</span>]
+}
+
+<span class="keyword">set</span> <span class="string">"Healthcare Policies"</span>
+<span class="constant">first-applicable</span>
+<span class="keyword">for</span> <span class="builtin">resource</span>.type == <span class="string">"medical_record"</span>
+<span class="keyword">var</span> isDoctor = <span class="builtin">subject</span>.roles =~ <span class="string">"doctor"</span>;
+
+<span class="keyword">policy</span> <span class="string">"Permit doctors"</span>
+<span class="keyword">permit</span>
+<span class="builtin">action</span> == <span class="string">"read"</span>
+<span class="keyword">where</span>
+  isDoctor;
+  &lt;<span class="function">time.localTimeIsBetween</span>(<span class="string">"08:00:00"</span>, <span class="string">"18:00:00"</span>)&gt;;
+<span class="keyword">obligation</span>
+  { <span class="string">"type"</span>: <span class="string">"log_access"</span> }
+<span class="keyword">transform</span>
+  <span class="builtin">resource</span> |- { @.ssn : <span class="function">blacken</span> };</code></pre>
+
+    <h2>SAPL-Test Example</h2>
+    <pre><code><span class="keyword">requirement</span> <span class="string">"Healthcare tests"</span> {
+    <span class="keyword">given</span>
+    - <span class="keyword">policy</span> <span class="string">"healthcare_access"</span>
+    - <span class="keyword">function</span> <span class="string">"time.now"</span> <span class="keyword">maps to</span> <span class="string">"2024-01-15T10:30:00Z"</span>
+    - <span class="keyword">virtual-time</span>
+
+    <span class="keyword">scenario</span> <span class="string">"doctor reads record"</span>
+    <span class="keyword">when</span> <span class="keyword">subject</span> { <span class="string">"role"</span>: <span class="string">"doctor"</span> }
+         <span class="keyword">attempts</span> <span class="string">"read"</span>
+         <span class="keyword">on</span> { <span class="string">"type"</span>: <span class="string">"patient_record"</span> }
+    <span class="keyword">expect</span> <span class="constant">permit</span> 
+           <span class="keyword">with</span> <span class="keyword">obligations</span> { <span class="string">"type"</span>: <span class="string">"log"</span> };
+
+    <span class="keyword">scenario</span> <span class="string">"deny after hours"</span>
+    <span class="keyword">given</span>
+    - <span class="keyword">function</span> <span class="string">"time.localTimeIsBetween"</span> <span class="keyword">maps to</span> <span class="constant">false</span>
+    <span class="keyword">when</span> <span class="keyword">subject</span> { <span class="string">"role"</span>: <span class="string">"doctor"</span> } 
+         <span class="keyword">attempts</span> <span class="string">"read"</span> 
+         <span class="keyword">on</span> <span class="string">"record"</span>
+    <span class="keyword">expect</span> <span class="constant">deny</span>;
+}</code></pre>
+
+    <h2>Color Legend</h2>
+    <p>
+        <span class="keyword">Keywords</span> |
+        <span class="string">Strings</span> |
+        <span class="comment">Comments</span> |
+        <span class="number">Numbers</span> |
+        <span class="operator">Operators</span> |
+        <span class="function">Functions</span> |
+        <span class="builtin">Built-ins</span> |
+        <span class="constant">Constants</span>
+    </p>
+</body>
+</html>

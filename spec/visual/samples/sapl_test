@@ -1,0 +1,17 @@
+requirement "Healthcare tests" {
+    given
+    - policy "healthcare_access"
+    - function "time.now" maps to "2024-01-15T10:30:00Z"
+
+    scenario "doctor reads record"
+    when subject { "role": "doctor" }
+         attempts "read"
+         on { "type": "patient_record" }
+    expect permit with obligations { "type": "log" };
+
+    scenario "deny after hours"
+    given
+    - function "time.localTimeIsBetween" maps to false
+    when subject { "role": "doctor" } attempts "read" on "record"
+    expect deny;
+}

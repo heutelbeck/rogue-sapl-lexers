@@ -1,0 +1,22 @@
+// SAPL - Streaming Attribute Policy Language
+import time.* as time
+
+set "Healthcare Access Policies"
+first-applicable
+for resource.type == "medical_record"
+
+policy "Permit doctors during business hours"
+permit
+action == "read"
+where
+  <time.localTimeIsBetween("08:00:00", "18:00:00")>;
+  <time.dayOfWeek()> in [1,2,3,4,5];
+obligation
+  { "type": "log_access" }
+transform
+  resource |- { @.ssn : filter.blacken };
+
+policy "Deny after-hours"
+deny
+where
+  !<time.localTimeIsBetween("08:00:00", "18:00:00")>;

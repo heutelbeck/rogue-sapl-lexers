@@ -1,0 +1,5 @@
+policy "deny access outside business hours"
+deny
+resource.type == "patient_record" & action == "read"
+where
+  !<time.localTimeIsBetween("08:00:00", "18:00:00")>;

@@ -1,0 +1,4 @@
+requirement "test basic policy" {
+  scenario "permits doctors" when subject "alice" attempts "read" on "record123"
+  expect permit;
+}
